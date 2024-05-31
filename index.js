@@ -1,8 +1,11 @@
-import { express } from 'express';
-import cors from 'cors';
-import fetch from 'node-fetch';
+const express = require('express');
+const cors = require('cors');
+const fetch = require('node-fetch');
 const app = express();
 app.use(cors());
+
+let windowPrevState = [];
+let sum = 0;
 
 app.get('/numbers/:numbersId',async (req,res)=>{
      const numbersId = req.params.numbersId;
@@ -17,6 +20,8 @@ app.get('/numbers/:numbersId',async (req,res)=>{
      }
      else if(numbersId === "p"){
           const api= 'http://20.244.56.144/test/primes';
+     }else{
+          return res.status(400).json({ error: 'Invalid numbersId' });
      }
      try{
           const response = await fetch(api,{
@@ -31,21 +36,24 @@ app.get('/numbers/:numbersId',async (req,res)=>{
           const uniqSet = new Set(combArray);
           const windowCurrState = Array.from(uniqSet);
           let n = windowCurrState.length;
+          let newWindowCurrState =[];
           if(n>10){
                newWindowCurrState = windowCurrState.slice(n-10);
+          }else{
+               newWindowCurrState = windowCurrState;
           }
-          for(let i=0;i<(n-10);i++){
+          for(let i=0;i<newWindowCurrState.length;i++){
                sum = sum + newWindowCurrState[i];
           }
-          const average = sum/(newWindowCurrState.length);
+          let average = sum/newWindowCurrState.length;
           const answer ={
                numbers:data,
                windowPrevState,
                newWindowCurrState,
-               avg:average
+               average
           };
-          windowPrevState = newWindowCurrState
-          res.sendStatus(200).json(answer);
+          windowPrevState = newWindowCurrState;
+          res.json(answer);
      }catch(error){
           console.log('error fetching data',error);
           res.status(500).json({error: 'failed to fetch data'});
